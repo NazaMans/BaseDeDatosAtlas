@@ -307,7 +307,75 @@
             margin-bottom: 5px;
         }
 
-        @media (max-width: 768px) {
+        .search-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .advanced-search {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .advanced-search h4 {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .data-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .result-count {
+            background: #e9ecef;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .search-highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .filter-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px;
+            font-size: 1.1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
             .container {
                 padding: 10px;
             }
@@ -328,7 +396,7 @@
                 flex-direction: column;
                 align-items: center;
             }
-        }
+        
     </style>
 </head>
 <body>
@@ -385,9 +453,50 @@
             </div>
         </div>
 
+        <!-- Búsqueda -->
+        <div class="card">
+            <div class="form-section">
+                <h3>🔍 Buscar <span id="searchCollectionName">Estudiantes</span></h3>
+                <div class="search-container">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="searchField">Buscar por:</label>
+                            <select id="searchField">
+                                <!-- Opciones se generarán dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="searchValue">Valor a buscar:</label>
+                            <input type="text" id="searchValue" placeholder="Ingrese el término de búsqueda...">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn" onclick="searchData()">🔍 Buscar</button>
+                        <button class="btn btn-warning" onclick="clearSearch()">🔄 Mostrar Todos</button>
+                        <button class="btn" onclick="toggleAdvancedSearch()">⚙️ Búsqueda Avanzada</button>
+                    </div>
+                </div>
+                
+                <!-- Búsqueda Avanzada -->
+                <div id="advancedSearch" class="advanced-search" style="display: none;">
+                    <h4>🎯 Búsqueda Avanzada</h4>
+                    <div id="advancedFilters" class="form-grid">
+                        <!-- Filtros se generarán dinámicamente -->
+                    </div>
+                    <button class="btn btn-success" onclick="applyAdvancedSearch()">🔍 Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Mostrar Datos -->
         <div class="card">
-            <h3 id="dataTitle">📊 Lista de Estudiantes</h3>
+            <div class="data-header">
+                <h3 id="dataTitle">📊 Lista de Estudiantes</h3>
+                <div class="data-controls">
+                    <span id="resultCount" class="result-count">0 registros</span>
+                    <button class="btn" onclick="exportData()">📥 Exportar</button>
+                </div>
+            </div>
             <div id="dataDisplay" class="data-display">
                 <div class="loading">⏳ Cargando datos...</div>
             </div>
@@ -400,6 +509,9 @@
     <script>
         let currentCollection = 'Estudiantes';
         let currentData = [];
+        let filteredData = [];
+        let searchTerm = '';
+        let activeFilters = {};
 
         // Configuración de campos para cada colección
         const collectionFields = {
@@ -465,9 +577,16 @@
             // Actualizar títulos
             document.getElementById('formTitle').textContent = `➕ Agregar Nuevo ${collection.slice(0, -1)}`;
             document.getElementById('dataTitle').textContent = `📊 Lista de ${collection}`;
+            document.getElementById('searchCollectionName').textContent = collection;
             
             // Generar formulario
             generateForm(collection);
+            
+            // Generar opciones de búsqueda
+            generateSearchOptions(collection);
+            
+            // Limpiar búsqueda anterior
+            clearSearch();
             
             // Cargar datos
             loadData();
@@ -497,7 +616,193 @@
             formFields.innerHTML = html;
         }
 
-        // Función para limpiar formulario
+        // Función para generar opciones de búsqueda
+        function generateSearchOptions(collection) {
+            const searchField = document.getElementById('searchField');
+            const fields = collectionFields[collection];
+            
+            let html = '<option value="">-- Seleccionar campo --</option>';
+            fields.forEach(field => {
+                html += `<option value="${field.name}">${field.label}</option>`;
+            });
+            
+            searchField.innerHTML = html;
+            generateAdvancedFilters(collection);
+        }
+
+        // Función para generar filtros avanzados
+        function generateAdvancedFilters(collection) {
+            const advancedFilters = document.getElementById('advancedFilters');
+            const fields = collectionFields[collection];
+            
+            let html = '';
+            fields.forEach(field => {
+                html += `
+                    <div class="form-group">
+                        <label for="filter_${field.name}">${field.label}:</label>
+                        <input 
+                            type="${field.type}" 
+                            id="filter_${field.name}" 
+                            name="filter_${field.name}"
+                            placeholder="Filtrar por ${field.label.toLowerCase()}..."
+                        >
+                    </div>
+                `;
+            });
+            
+            advancedFilters.innerHTML = html;
+        }
+
+        // Función para buscar datos
+        function searchData() {
+            const searchField = document.getElementById('searchField').value;
+            const searchValue = document.getElementById('searchValue').value.trim();
+            
+            if (!searchField || !searchValue) {
+                showMessage('Por favor selecciona un campo y ingresa un valor para buscar', 'error');
+                return;
+            }
+            
+            searchTerm = searchValue.toLowerCase();
+            
+            filteredData = currentData.filter(item => {
+                if (item[searchField]) {
+                    return item[searchField].toString().toLowerCase().includes(searchTerm);
+                }
+                return false;
+            });
+            
+            displayData(filteredData, true);
+            updateResultCount();
+            
+            if (filteredData.length === 0) {
+                showMessage(`No se encontraron resultados para "${searchValue}" en ${searchField}`, 'error');
+            } else {
+                showMessage(`Se encontraron ${filteredData.length} resultado(s)`, 'success');
+            }
+        }
+
+        // Función para limpiar búsqueda
+        function clearSearch() {
+            document.getElementById('searchValue').value = '';
+            document.getElementById('searchField').value = '';
+            
+            // Limpiar filtros avanzados
+            const advancedInputs = document.querySelectorAll('#advancedFilters input');
+            advancedInputs.forEach(input => input.value = '');
+            
+            searchTerm = '';
+            activeFilters = {};
+            filteredData = [...currentData];
+            displayData(currentData);
+            updateResultCount();
+        }
+
+        // Función para toggle búsqueda avanzada
+        function toggleAdvancedSearch() {
+            const advancedSearch = document.getElementById('advancedSearch');
+            if (advancedSearch.style.display === 'none' || !advancedSearch.style.display) {
+                advancedSearch.style.display = 'block';
+            } else {
+                advancedSearch.style.display = 'none';
+            }
+        }
+
+        // Función para aplicar búsqueda avanzada
+        function applyAdvancedSearch() {
+            const fields = collectionFields[currentCollection];
+            activeFilters = {};
+            
+            // Recopilar filtros activos
+            fields.forEach(field => {
+                const input = document.getElementById(`filter_${field.name}`);
+                if (input && input.value.trim()) {
+                    activeFilters[field.name] = input.value.trim().toLowerCase();
+                }
+            });
+            
+            if (Object.keys(activeFilters).length === 0) {
+                showMessage('Ingresa al menos un filtro para la búsqueda avanzada', 'error');
+                return;
+            }
+            
+            // Aplicar filtros
+            filteredData = currentData.filter(item => {
+                return Object.keys(activeFilters).every(fieldName => {
+                    if (item[fieldName]) {
+                        return item[fieldName].toString().toLowerCase().includes(activeFilters[fieldName]);
+                    }
+                    return false;
+                });
+            });
+            
+            displayData(filteredData, true);
+            updateResultCount();
+            
+            if (filteredData.length === 0) {
+                showMessage('No se encontraron resultados con los filtros aplicados', 'error');
+            } else {
+                showMessage(`Filtros aplicados: ${filteredData.length} resultado(s)`, 'success');
+            }
+        }
+
+        // Función para actualizar contador de resultados
+        function updateResultCount() {
+            const count = filteredData.length > 0 ? filteredData.length : currentData.length;
+            const total = currentData.length;
+            const resultCount = document.getElementById('resultCount');
+            
+            if (filteredData.length > 0 && filteredData.length < total) {
+                resultCount.textContent = `${count} de ${total} registros`;
+                resultCount.style.background = '#fff3cd';
+                resultCount.style.color = '#856404';
+            } else {
+                resultCount.textContent = `${count} registros`;
+                resultCount.style.background = '#e9ecef';
+                resultCount.style.color = '#495057';
+            }
+        }
+
+        // Función para exportar datos
+        function exportData() {
+            const dataToExport = filteredData.length > 0 ? filteredData : currentData;
+            const csvContent = convertToCSV(dataToExport);
+            downloadCSV(csvContent, `${currentCollection}_${new Date().toISOString().split('T')[0]}.csv`);
+            showMessage('Datos exportados correctamente', 'success');
+        }
+
+        // Función para convertir a CSV
+        function convertToCSV(data) {
+            if (data.length === 0) return '';
+            
+            const fields = collectionFields[currentCollection];
+            const headers = fields.map(field => field.label).join(',');
+            
+            const rows = data.map(item => {
+                return fields.map(field => {
+                    const value = item[field.name] || '';
+                    return `"${value.toString().replace(/"/g, '""')}"`;
+                }).join(',');
+            });
+            
+            return headers + '\n' + rows.join('\n');
+        }
+
+        // Función para descargar CSV
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
         function clearForm() {
             document.getElementById('universityForm').reset();
         }
@@ -513,8 +818,10 @@
 
                 if (response.ok) {
                     currentData = data;
+                    filteredData = [...data];
                     displayData(data);
                     updateStats();
+                    updateResultCount();
                 } else {
                     throw new Error(data.error || 'Error al cargar datos');
                 }
@@ -524,11 +831,21 @@
         }
 
         // Función para mostrar los datos
-        function displayData(data) {
+        function displayData(data, highlight = false) {
             const dataDisplay = document.getElementById('dataDisplay');
             
             if (data.length === 0) {
-                dataDisplay.innerHTML = '<div class="empty-state">📄 No hay registros en esta colección</div>';
+                if (filteredData.length === 0 && currentData.length > 0) {
+                    dataDisplay.innerHTML = `
+                        <div class="no-results">
+                            🔍 No se encontraron resultados con los criterios de búsqueda
+                            <br><br>
+                            <button class="btn" onclick="clearSearch()">🔄 Mostrar Todos</button>
+                        </div>
+                    `;
+                } else {
+                    dataDisplay.innerHTML = '<div class="empty-state">📄 No hay registros en esta colección</div>';
+                }
                 return;
             }
 
@@ -550,14 +867,34 @@
                 const fields = collectionFields[currentCollection];
                 fields.forEach(field => {
                     if (item[field.name]) {
+                        let value = item[field.name].toString();
+                        
+                        // Resaltar términos de búsqueda
+                        if (highlight && searchTerm) {
+                            const regex = new RegExp(`(${searchTerm})`, 'gi');
+                            value = value.replace(regex, '<span class="search-highlight">$1</span>');
+                        }
+                        
                         html += `
                             <div class="field">
                                 <span class="field-label">${field.label}:</span>
-                                <span class="field-value">${item[field.name]}</span>
+                                <span class="field-value">${value}</span>
                             </div>
                         `;
                     }
                 });
+                
+                // Mostrar filtros activos si los hay
+                if (Object.keys(activeFilters).length > 0) {
+                    html += '<div style="margin-top: 10px;">';
+                    Object.keys(activeFilters).forEach(filterKey => {
+                        const field = collectionFields[currentCollection].find(f => f.name === filterKey);
+                        if (field) {
+                            html += `<span class="filter-tag">${field.label}: ${activeFilters[filterKey]}</span>`;
+                        }
+                    });
+                    html += '</div>';
+                }
                 
                 html += '</div></div>';
             });
@@ -608,7 +945,13 @@
 
         // Función para editar un elemento (simple - llena el formulario)
         function editItem(id) {
-            const item = currentData.find(data => data._id === id);
+            let item;
+            if (filteredData.length > 0) {
+                item = filteredData.find(data => data._id === id);
+            } else {
+                item = currentData.find(data => data._id === id);
+            }
+            
             if (!item) return;
 
             const fields = collectionFields[currentCollection];
@@ -664,7 +1007,15 @@
         // Inicializar la aplicación
         document.addEventListener('DOMContentLoaded', function() {
             generateForm('Estudiantes');
+            generateSearchOptions('Estudiantes');
             loadData();
+            
+            // Agregar evento de búsqueda en tiempo real
+            document.getElementById('searchValue').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchData();
+                }
+            });
         });
     </script>
 </body>
