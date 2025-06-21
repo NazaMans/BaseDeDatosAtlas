@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Universitaria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .collection-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            transform: translateY(-2px);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input[type="text"], 
+        input[type="email"], 
+        input[type="number"],
+        input[type="date"],
+        textarea, 
+        select {
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus, 
+        textarea:focus, 
+        select:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #fd79a8);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #ffc107, #ffb300);
+            color: #333;
+        }
+
+        .data-display {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .data-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 5px solid #1e3c72;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .data-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .data-item .item-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .data-item .item-id {
+            font-size: 0.8rem;
+            color: #888;
+            font-family: monospace;
+        }
+
+        .data-item .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .data-item .item-content {
+            line-height: 1.6;
+        }
+
+        .data-item .item-content .field {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-item .item-content .field-label {
+            font-weight: 600;
+            color: #1e3c72;
+            min-width: 100px;
+        }
+
+        .data-item .item-content .field-value {
+            flex: 1;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #1e3c72;
+            font-weight: bold;
+            padding: 40px;
+            font-size: 1.2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 4px solid #1e3c72;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .collection-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Sistema de Gestión Universitaria</h1>
+            <p>Administra Estudiantes, Docentes y Carreras</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="estudiantesCount">0</div>
+                    <div>Estudiantes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="docentesCount">0</div>
+                    <div>Docentes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="carrerasCount">0</div>
+                    <div>Carreras</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs de Colecciones -->
+        <div class="card">
+            <div class="collection-tabs">
+                <button class="tab-btn active" onclick="selectCollection('Estudiantes')">
+                    👨‍🎓 Estudiantes
+                </button>
+                <button class="tab-btn" onclick="selectCollection('Docentes')">
+                    👨‍🏫 Docentes
+                </button>
+                <button class="tab-btn" onclick="selectCollection('Carreras')">
+                    📚 Carreras
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulario Dinámico -->
+        <div class="card">
+            <div class="form-section">
+                <h3 id="formTitle">➕ Agregar Nuevo Estudiante</h3>
+                <form id="universityForm">
+                    <div class="form-grid" id="formFields">
+                        <!-- Los campos se generarán dinámicamente -->
+                    </div>
+                    <button type="submit" class="btn btn-success">💾 Guardar</button>
+                    <button type="button" class="btn" onclick="clearForm()">🔄 Limpiar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Mostrar Datos -->
+        <div class="card">
+            <h3 id="dataTitle">📊 Lista de Estudiantes</h3>
+            <div id="dataDisplay" class="data-display">
+                <div class="loading">⏳ Cargando datos...</div>
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let currentCollection = 'Estudiantes';
+        let currentData = [];
+
+        // Configuración de campos para cada colección
+        const collectionFields = {
+            'Estudiantes': [
+                { name: 'nombre', label: 'Nombre Completo', type: 'text', required: true },
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'cedula', label: 'Cédula', type: 'text', required: true },
+                { name: 'telefono', label: 'Teléfono', type: 'text', required: false },
+                { name: 'fechaNacimiento', label: 'Fecha de Nacimiento', type: 'date', required: false },
+                { name: 'carrera', label: 'Carrera', type: 'text', required: true },
+                { name: 'semestre', label: 'Semestre', type: 'number', required: true },
+                { name: 'direccion', label: 'Dirección', type: 'text', required: false }
+            ],
+            'Docentes': [
+                { name: 'nombre', label: 'Nombre Completo', type: 'text', required: true },
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'cedula', label: 'Cédula', type: 'text', required: true },
+                { name: 'telefono', label: 'Teléfono', type: 'text', required: false },
+                { name: 'especialidad', label: 'Especialidad', type: 'text', required: true },
+                { name: 'departamento', label: 'Departamento', type: 'text', required: true },
+                { name: 'titulo', label: 'Título Académico', type: 'text', required: true },
+                { name: 'experiencia', label: 'Años de Experiencia', type: 'number', required: false }
+            ],
+            'Carreras': [
+                { name: 'nombre', label: 'Nombre de la Carrera', type: 'text', required: true },
+                { name: 'codigo', label: 'Código', type: 'text', required: true },
+                { name: 'duracion', label: 'Duración (semestres)', type: 'number', required: true },
+                { name: 'facultad', label: 'Facultad', type: 'text', required: true },
+                { name: 'modalidad', label: 'Modalidad', type: 'text', required: true },
+                { name: 'creditos', label: 'Créditos Totales', type: 'number', required: true },
+                { name: 'descripcion', label: 'Descripción', type: 'text', required: false }
+            ]
+        };
+
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'success') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.innerHTML = `
+                <span>${type === 'success' ? '✅' : '❌'}</span>
+                <span>${message}</span>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messagesDiv.contains(messageDiv)) {
+                    messagesDiv.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+
+        // Función para seleccionar colección
+        function selectCollection(collection) {
+            currentCollection = collection;
+            
+            // Actualizar tabs activos
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Actualizar títulos
+            document.getElementById('formTitle').textContent = `➕ Agregar Nuevo ${collection.slice(0, -1)}`;
+            document.getElementById('dataTitle').textContent = `📊 Lista de ${collection}`;
+            
+            // Generar formulario
+            generateForm(collection);
+            
+            // Cargar datos
+            loadData();
+        }
+
+        // Función para generar formulario dinámico
+        function generateForm(collection) {
+            const formFields = document.getElementById('formFields');
+            const fields = collectionFields[collection];
+            
+            let html = '';
+            fields.forEach(field => {
+                html += `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${field.required ? ' *' : ''}</label>
+                        <input 
+                            type="${field.type}" 
+                            id="${field.name}" 
+                            name="${field.name}"
+                            ${field.required ? 'required' : ''}
+                            placeholder="Ingrese ${field.label.toLowerCase()}..."
+                        >
+                    </div>
+                `;
+            });
+            
+            formFields.innerHTML = html;
+        }
+
+        // Función para limpiar formulario
+        function clearForm() {
+            document.getElementById('universityForm').reset();
+        }
+
+        // Función para cargar datos
+        async function loadData() {
+            const dataDisplay = document.getElementById('dataDisplay');
+            dataDisplay.innerHTML = '<div class="loading">⏳ Cargando datos...</div>';
+
+            try {
+                const response = await fetch(`/api/${currentCollection}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentData = data;
+                    displayData(data);
+                    updateStats();
+                } else {
+                    throw new Error(data.error || 'Error al cargar datos');
+                }
+            } catch (error) {
+                dataDisplay.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Función para mostrar los datos
+        function displayData(data) {
+            const dataDisplay = document.getElementById('dataDisplay');
+            
+            if (data.length === 0) {
+                dataDisplay.innerHTML = '<div class="empty-state">📄 No hay registros en esta colección</div>';
+                return;
+            }
+
+            let html = '<div class="data-grid">';
+            data.forEach(item => {
+                html += `
+                    <div class="data-item">
+                        <div class="item-header">
+                            <div class="item-id">ID: ${item._id}</div>
+                            <div class="item-actions">
+                                <button class="btn btn-warning" onclick="editItem('${item._id}')" title="Editar">✏️</button>
+                                <button class="btn btn-danger" onclick="deleteItem('${item._id}')" title="Eliminar">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="item-content">
+                `;
+                
+                // Mostrar campos específicos según la colección
+                const fields = collectionFields[currentCollection];
+                fields.forEach(field => {
+                    if (item[field.name]) {
+                        html += `
+                            <div class="field">
+                                <span class="field-label">${field.label}:</span>
+                                <span class="field-value">${item[field.name]}</span>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += '</div></div>';
+            });
+            html += '</div>';
+
+            dataDisplay.innerHTML = html;
+        }
+
+        // Función para actualizar estadísticas
+        async function updateStats() {
+            try {
+                const collections = ['Estudiantes', 'Docentes', 'Carreras'];
+                for (const collection of collections) {
+                    const response = await fetch(`/api/${collection}`);
+                    const data = await response.json();
+                    if (response.ok) {
+                        document.getElementById(`${collection.toLowerCase()}Count`).textContent = data.length;
+                    }
+                }
+            } catch (error) {
+                console.error('Error actualizando estadísticas:', error);
+            }
+        }
+
+        // Función para eliminar un elemento
+        async function deleteItem(id) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar este ${currentCollection.slice(0, -1).toLowerCase()}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/${currentCollection}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage(`${currentCollection.slice(0, -1)} eliminado correctamente`);
+                    loadData();
+                } else {
+                    throw new Error(result.error || 'Error al eliminar');
+                }
+            } catch (error) {
+                showMessage(`Error al eliminar: ${error.message}`, 'error');
+            }
+        }
+
+        // Función para editar un elemento (simple - llena el formulario)
+        function editItem(id) {
+            const item = currentData.find(data => data._id === id);
+            if (!item) return;
+
+            const fields = collectionFields[currentCollection];
+            fields.forEach(field => {
+                const input = document.getElementById(field.name);
+                if (input && item[field.name]) {
+                    input.value = item[field.name];
+                }
+            });
+
+            // Scroll al formulario
+            document.getElementById('universityForm').scrollIntoView({ behavior: 'smooth' });
+            showMessage(`Datos cargados en el formulario. Modifica y guarda para actualizar.`, 'success');
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('universityForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Convertir FormData a objeto
+            for (let [key, value] of formData.entries()) {
+                if (value.trim()) {
+                    data[key] = value.trim();
+                }
+            }
+
+            try {
+                const response = await fetch(`/api/${currentCollection}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage(`${currentCollection.slice(0, -1)} guardado correctamente`);
+                    clearForm();
+                    loadData();
+                } else {
+                    throw new Error(result.error || 'Error al guardar');
+                }
+            } catch (error) {
+                showMessage(`Error al guardar: ${error.message}`, 'error');
+            }
+        });
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            generateForm('Estudiantes');
+            loadData();
+        });
+    </script>
+</body>
+</html>
