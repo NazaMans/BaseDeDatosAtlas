@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/Universidad';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://nazareno:1234@prueba.qwrsvwy.mongodb.net/Universidad';
 
 // Middleware
 app.use(cors());
@@ -18,8 +18,8 @@ let db;
 // Conectar a MongoDB
 MongoClient.connect(MONGODB_URI)
     .then(client => {
-        console.log('Conectado a MongoDB');
-        db = client.db();
+        console.log('Conectado a MongoDB Atlas');
+        db = client.db('Universidad'); // Cambia 'Universidad' por el nombre de tu base de datos
     })
     .catch(error => console.error('Error conectando a MongoDB:', error));
 
